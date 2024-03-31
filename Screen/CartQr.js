@@ -42,8 +42,9 @@ export default function CartQr() {
         navigation.navigate("Order"); // Navigate to the 'Order' page
         setModalVisible(false);
       } else {
-        Alert.alert("Invalid QR Code", "Please scan a valid QR code.");
+        Alert.alert("Invalid QR Code", "Please scan a valid Cart QR code.");
         setScanned(false); // Reset scanned state
+        setModalVisible(false);
       }
     }
   };

@@ -8,6 +8,8 @@ import {
   ScrollView,
   TouchableHighlight,
   Modal,
+  Alert,
+  Image,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 const { height, width } = Dimensions.get("window");
@@ -15,6 +17,9 @@ import { ScaledSheet } from "react-native-size-matters";
 import { MaterialCommunityIcons, AntDesign, Entypo } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Camera } from "expo-camera";
+import { ref, onValue, push } from "firebase/database";
+import { db } from "../config";
+import { useNavigation } from "@react-navigation/native";
 
 export default function Order() {
   const [cameraRef, setCameraRef] = useState(null);
@@ -22,6 +27,12 @@ export default function Order() {
   const [scanned, setScanned] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [count, setCount] = useState(1); // Initial count
+  const [Item, setItem] = useState(null);
+  const [items, setItems] = useState([]);
+  const [scannedItemData, setScannedItemData] = useState(null);
+  const [ItemCount, setItemCount] = useState(null);
+  const [TotalWeight, setTotalWeight] = useState(null);
+  const navigation = useNavigation();
 
   useEffect(() => {
     (async () => {
@@ -30,27 +41,110 @@ export default function Order() {
     })();
   }, []);
 
+  useEffect(() => {
+    const ItemRef = ref(db, "Iteam");
+    const ItemCountRef = ref(db, "ItemCount");
+    const TotalWeightRef = ref(db, "TotalWeight");
+
+    onValue(ItemRef, (snapshot) => {
+      const data = snapshot.val();
+
+      setItem(data);
+    });
+
+    onValue(ItemCountRef, (snapshot) => {
+      const data = snapshot.val();
+
+      setItemCount(data);
+    });
+
+    onValue(TotalWeightRef, (snapshot) => {
+      const data = snapshot.val();
+
+      setTotalWeight(data);
+    });
+  }, []);
+
   const handleBarCodeScanned = ({ data }) => {
     if (!scanned) {
       setScanned(true);
-      // Check if the scanned QR code matches the value for navigation
-      if (data === "122") {
+      if (Item && Item[data]) {
+        const matchedItem = Item[data];
+        const existingItemIndex = items.findIndex(
+          (item) => item.Name === matchedItem.Name
+        );
+        if (existingItemIndex !== -1) {
+          // If the scanned item already exists in the list, increase its count
+          const newItems = [...items];
+          newItems[existingItemIndex].count++;
+          setItems(newItems);
+        } else {
+          // If the scanned item is not in the list, add it to the list
+          setItems([...items, { ...matchedItem, count: 1 }]);
+        }
         setModalVisible(false);
       } else {
-        Alert.alert("Invalid QR Code", "Please scan a valid QR code.");
-        setScanned(false); // Reset scanned state
+        Alert.alert("Invalid QR Code", "Unrecognized Item");
+        setModalVisible(false);
       }
     }
   };
 
-  const increaseCount = () => {
-    setCount(count + 1);
+  const increaseCount = (index) => {
+    const newItems = [...items];
+    newItems[index].count++;
+    setItems(newItems);
+  };
+  const decreaseCount = (index) => {
+    const newItems = [...items];
+    newItems[index].count--;
+    if (newItems[index].count === 0) {
+      newItems.splice(index, 1); // Remove the item from the array
+    }
+    setItems(newItems);
   };
 
-  const decreaseCount = () => {
-    if (count > 1) {
-      setCount(count - 1);
-    }
+  const calculateTotalItemCount = () => {
+    let totalCount = 0;
+    items.forEach((item) => {
+      totalCount += item.count;
+    });
+    return totalCount;
+  };
+
+  const calculateTotalWeight = () => {
+    let totalWeight = 0;
+    items.forEach((item) => {
+      totalWeight += item.Weight * item.count;
+    });
+    return totalWeight;
+  };
+
+  const handlePayment = () => {
+    // Prepare data to send to Firebase
+    const paymentData = {
+      items: items.map(({ Name, Weight, Price, count }) => ({
+        Name,
+        Weight,
+        Price,
+        count,
+      })),
+      totalCount: calculateTotalItemCount(),
+      totalWeight: calculateTotalWeight(),
+    };
+
+    // Write data to Firebase under a unique id
+    const paymentRef = ref(db, "payments");
+    push(paymentRef, paymentData)
+      .then(() => {
+        setItems([]);
+        alert("Payment successfully!");
+        navigation.navigate("Home");
+      })
+      .catch((error) => {
+        // Handle errors
+        alert("Error adding data");
+      });
   };
 
   return (
@@ -72,30 +166,75 @@ export default function Order() {
             contentContainerStyle={styles.scroll}
             showsVerticalScrollIndicator={false}
           >
-            <View style={styles.Box}>
-              <View style={styles.ImageBox}></View>
-              <Text style={styles.BoxText}>Chocolate biscuit</Text>
-              <View style={styles.CountBox}>
-                <TouchableHighlight
-                  onPress={increaseCount}
-                  underlayColor="transparent"
-                >
-                  <Entypo name="plus" size={24} color="#6dd051" />
-                </TouchableHighlight>
-                <Text style={styles.CountNumberText}>{count}</Text>
-                <TouchableHighlight
-                  onPress={decreaseCount}
-                  underlayColor="transparent"
-                >
-                  <Entypo name="minus" size={24} color="#6dd051" />
-                </TouchableHighlight>
+            {items.map((item, index) => (
+              <View key={index} style={styles.Box}>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <View style={styles.ImageBox}>
+                    <Image
+                      style={[styles.image, StyleSheet.absoluteFillObject]}
+                      source={{ uri: item.Image }}
+                    />
+                  </View>
+                  <View style={{ flexDirection: "colum" }}>
+                    <Text style={styles.BoxText}>{item.Name}</Text>
+                    <Text style={styles.BoxQuantityText}>
+                      Weight: {item.Weight} g
+                    </Text>
+                    <Text style={styles.BoxQuantityText}>
+                      Price: Rs:{item.Price}
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.CountBox}>
+                  <TouchableHighlight
+                    onPress={() => decreaseCount(index)}
+                    underlayColor="transparent"
+                  >
+                    <Entypo name="minus" size={24} color="#6dd051" />
+                  </TouchableHighlight>
+                  <Text style={styles.CountNumberText}>{item.count}</Text>
+                  <TouchableHighlight
+                    onPress={() => increaseCount(index)}
+                    underlayColor="transparent"
+                  >
+                    <Entypo name="plus" size={24} color="#6dd051" />
+                  </TouchableHighlight>
+                </View>
               </View>
-            </View>
-            <View style={styles.Box}></View>
-            <View style={styles.Box}></View>
+            ))}
           </ScrollView>
         </View>
-        <View style={{ flex: 0.3 }}>
+
+        {/* Display total item count */}
+        <View style={styles.totalItem}>
+          <Text style={styles.totalItemText}>
+            Total Items: {calculateTotalItemCount()}
+          </Text>
+
+          {/* Conditional rendering for error text */}
+          {ItemCount !== calculateTotalItemCount() &&
+            calculateTotalItemCount() !== 0 && (
+              <Text style={styles.ErrorText}>
+                The total item count is mismatched.
+              </Text>
+            )}
+
+          {/* Display total weight */}
+          <Text style={styles.totalItemText}>
+            Total Weight: {calculateTotalWeight()} g
+          </Text>
+
+          {/* Conditional rendering for error text */}
+          {TotalWeight !== calculateTotalWeight() &&
+            calculateTotalItemCount() !== 0 && (
+              <Text style={styles.ErrorText}>
+                The total item Weight is mismatched.
+              </Text>
+            )}
+        </View>
+
+        {/* Display Pay button*/}
+        <View style={{ flex: 0.4 }}>
           <TouchableHighlight
             onPress={() => {
               setModalVisible(true);
@@ -111,13 +250,25 @@ export default function Order() {
             />
           </TouchableHighlight>
 
-          <TouchableHighlight
-            underlayColor={"#928F8A"}
-            style={styles.PayButton}
-            onPress={() => setModalVisible(!modalVisible)}
-          >
-            <Text style={styles.PayButtonText}>Pay Now</Text>
-          </TouchableHighlight>
+          {ItemCount !== calculateTotalItemCount() ||
+          calculateTotalItemCount() === 0 ||
+          TotalWeight !== calculateTotalWeight() ? (
+            <TouchableHighlight
+              underlayColor={"#928F8A"}
+              style={[styles.PayButton, { backgroundColor: "#ccc" }]} // Change button color to gray when disabled
+              disabled={true} // Disable the button
+            >
+              <Text style={styles.PayButtonText}>Pay Now</Text>
+            </TouchableHighlight>
+          ) : (
+            <TouchableHighlight
+              underlayColor={"#928F8A"}
+              style={styles.PayButton}
+              onPress={handlePayment}
+            >
+              <Text style={styles.PayButtonText}>Pay Now</Text>
+            </TouchableHighlight>
+          )}
         </View>
       </View>
 
@@ -178,21 +329,38 @@ const styles = ScaledSheet.create({
     borderColor: "#C9C9C9",
     borderBottomWidth: 1,
     flexDirection: "row",
-    justifyContent: "space-evenly",
+    justifyContent: "space-between",
     alignItems: "center",
+    paddingHorizontal: 20,
   },
 
   ImageBox: {
     borderRadius: 10,
     width: width / 5,
     height: height / 10.9,
-    backgroundColor: "#515151",
+    justifyContent: "center",
+    alignItems: "center",
+    alignContent: "center",
+  },
+
+  image: {
+    resizeMode: "cover",
+    width: "100%",
+    height: "100%",
   },
 
   BoxText: {
+    paddingLeft: 20,
     fontSize: "20@mvs",
     fontFamily: "Inter_400Regular",
     color: "#515151",
+  },
+
+  BoxQuantityText: {
+    paddingLeft: 20,
+    fontSize: "15@mvs",
+    fontFamily: "Inter_400Regular",
+    color: "#858585",
   },
 
   CountBox: {
@@ -223,6 +391,23 @@ const styles = ScaledSheet.create({
     fontSize: "15@mvs",
     fontFamily: "Inter_400Regular",
     color: "#515151",
+  },
+
+  totalItem: {
+    paddingLeft: 20,
+  },
+
+  totalItemText: {
+    fontSize: "20@mvs",
+    fontFamily: "Inter_400Regular",
+    color: "#7E7E7E",
+  },
+
+  ErrorText: {
+    fontSize: "10@mvs",
+    fontFamily: "Inter_400Regular",
+    color: "#FF4848",
+    paddingBottom: 10,
   },
 
   Cam: {
@@ -292,7 +477,6 @@ const styles = ScaledSheet.create({
     width: width / 2,
     height: height / 20,
     borderRadius: 10,
-    elevation: 2,
   },
   PayButtonText: {
     fontFamily: "Inter_600SemiBold",

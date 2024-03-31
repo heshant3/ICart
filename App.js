@@ -1,6 +1,7 @@
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View } from "react-native";
 import Navigation from "./Screen/Navigation";
+// import Order from "./Screen/Order";
 import {
   useFonts,
   Inter_600SemiBold,
