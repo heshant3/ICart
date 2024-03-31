@@ -7,19 +7,20 @@ import {
   StatusBar,
   Dimensions,
   ScrollView,
-  TouchableOpacity,
 } from "react-native";
-import { FontAwesome6 } from "@expo/vector-icons";
 import { ScaledSheet } from "react-native-size-matters";
 import { ref, onValue } from "firebase/database";
 import { db } from "../config";
-import { useNavigation } from "@react-navigation/native";
 
 const { height, width } = Dimensions.get("window");
 
-export default function History() {
+const OrderHistoryView = ({ route }) => {
   const [OrderHistoryData, setOrderHistoryData] = useState([]);
-  const navigation = useNavigation();
+  const { orderId } = route.params;
+
+  // Example state usage
+  const [quantity, setQuantity] = useState(0);
+  const [price, setPrice] = useState(0);
 
   // Fetch penalty data from Firebase when the component mounts
   useEffect(() => {
@@ -32,10 +33,6 @@ export default function History() {
       }
     });
   }, []);
-
-  const navigateToOrderDetails = (orderId) => {
-    navigation.navigate("OrderHistory", { orderId });
-  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -54,30 +51,22 @@ export default function History() {
           contentContainerStyle={styles.scroll}
           showsVerticalScrollIndicator={false}
         >
-          {/* price list box*/}
-          {OrderHistoryData.map((order, index) => (
-            <TouchableOpacity
-              style={styles.Box}
-              key={index}
-              onPress={() => navigateToOrderDetails(order.orderId)}
-            >
-              <View style={styles.ImageBox}>
-                <FontAwesome6 name="opencart" size={50} color="#515151" />
-              </View>
-              <View style={{ flexDirection: "column" }}>
-                <Text style={styles.BoxNameText}>Order Details</Text>
-                <Text style={styles.BoxQuantityText}>
-                  Order Id: {order.orderId}
-                </Text>
-                <Text style={styles.BoxQuantityText}>Date: {order.Date}</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
+          {/* Price list box */}
+          <View style={styles.Box}>
+            <View style={styles.ImageBox}></View>
+            <View style={{ flexDirection: "column" }}>
+              <Text style={styles.BoxNameText}>Name</Text>
+              <Text style={styles.BoxQuantityText}>Quantity: {quantity}</Text>
+              <Text style={styles.BoxQuantityText}>Price Mrs: {price}</Text>
+            </View>
+          </View>
+          <View style={styles.Box}></View>
+          <View style={styles.Box}></View>
         </ScrollView>
       </View>
     </SafeAreaView>
   );
-}
+};
 
 const styles = ScaledSheet.create({
   HeadText: {
@@ -87,13 +76,11 @@ const styles = ScaledSheet.create({
     color: "#515151",
     margin: 10,
   },
-
   scroll: {
     paddingVertical: 20,
     justifyContent: "center",
     alignItems: "center",
   },
-
   Box: {
     width: width,
     height: height / 7,
@@ -105,16 +92,12 @@ const styles = ScaledSheet.create({
     alignItems: "center",
     paddingLeft: 20,
   },
-
   ImageBox: {
     borderRadius: 10,
     width: width / 5,
     height: height / 10.9,
-    overflow: "hidden",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: "#515151",
   },
-
   BoxNameText: {
     paddingLeft: 20,
     fontSize: "20@mvs",
@@ -128,3 +111,5 @@ const styles = ScaledSheet.create({
     color: "#858585",
   },
 });
+
+export default OrderHistoryView;

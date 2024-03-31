@@ -9,6 +9,7 @@ import CartQr from "./CartQr";
 import Order from "./Order";
 import History from "./History";
 import User from "./User";
+import OrderHistory from "./OderHistoryView";
 import Login from "./Logging";
 
 const Tab = createBottomTabNavigator();
@@ -78,9 +79,10 @@ const Navigation = () => {
         }}
       >
         {/* Uncomment this if you have a login screen */}
-        {/* <Stack.Screen name="Login" component={Login} /> */}
+        <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Order" component={Order} />
+        <Stack.Screen name="OrderHistory" component={OrderHistory} />
       </Stack.Navigator>
     </NavigationContainer>
   );

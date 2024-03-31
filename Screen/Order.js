@@ -14,10 +14,10 @@ import {
 import React, { useState, useEffect } from "react";
 const { height, width } = Dimensions.get("window");
 import { ScaledSheet } from "react-native-size-matters";
-import { MaterialCommunityIcons, AntDesign, Entypo } from "@expo/vector-icons";
+import { MaterialCommunityIcons, Entypo } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Camera } from "expo-camera";
-import { ref, onValue, push } from "firebase/database";
+import { ref, onValue, push, set } from "firebase/database";
 import { db } from "../config";
 import { useNavigation } from "@react-navigation/native";
 
@@ -120,32 +120,62 @@ export default function Order() {
     return totalWeight;
   };
 
+  const calculateTotalPrice = () => {
+    let totalPrice = 0;
+    items.forEach((item) => {
+      totalPrice += item.Price * item.count;
+    });
+    return totalPrice;
+  };
+
   const handlePayment = () => {
+    // Generate unique order ID
+    const orderId = generateUUID();
+
+    // Get current date
+    const currentDate = new Date().toISOString().slice(0, 10);
+
     // Prepare data to send to Firebase
     const paymentData = {
-      items: items.map(({ Name, Weight, Price, count }) => ({
+      orderId: orderId,
+      items: items.map(({ Name, Weight, Price, count, Image }) => ({
         Name,
         Weight,
         Price,
         count,
+        Image,
       })),
       totalCount: calculateTotalItemCount(),
       totalWeight: calculateTotalWeight(),
+      totalPrice: calculateTotalPrice(),
+      Date: currentDate,
     };
 
-    // Write data to Firebase under a unique id
-    const paymentRef = ref(db, "payments");
+    // Write data to Firebase under the unique order ID
+    const paymentRef = ref(db, "Order");
     push(paymentRef, paymentData)
       .then(() => {
         setItems([]);
         alert("Payment successfully!");
         navigation.navigate("Home");
+        set(ref(db, "Cart01"), 0);
+        set(ref(db, "Cart02"), 0);
+        set(ref(db, "CartStatus"), 0);
       })
       .catch((error) => {
         // Handle errors
         alert("Error adding data");
       });
   };
+
+  // Function to generate UUID
+  function generateUUID() {
+    return "xx-xxxx-4xxx".replace(/[xy]/g, function (c) {
+      var r = (Math.random() * 16) | 0,
+        v = c == "x" ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -225,12 +255,19 @@ export default function Order() {
           </Text>
 
           {/* Conditional rendering for error text */}
-          {TotalWeight !== calculateTotalWeight() &&
-            calculateTotalItemCount() !== 0 && (
-              <Text style={styles.ErrorText}>
-                The total item Weight is mismatched.
-              </Text>
-            )}
+          {(TotalWeight !== calculateTotalWeight() &&
+            TotalWeight < calculateTotalWeight() - 50) ||
+            (TotalWeight > calculateTotalWeight() + 50 &&
+              calculateTotalItemCount() !== 0 && (
+                <Text style={styles.ErrorText}>
+                  The total item Weight is mismatched.
+                </Text>
+              ))}
+
+          {/* Display total price */}
+          <Text style={styles.totalItemText}>
+            Total Price: Rs {calculateTotalPrice()}
+          </Text>
         </View>
 
         {/* Display Pay button*/}
@@ -252,7 +289,8 @@ export default function Order() {
 
           {ItemCount !== calculateTotalItemCount() ||
           calculateTotalItemCount() === 0 ||
-          TotalWeight !== calculateTotalWeight() ? (
+          TotalWeight < calculateTotalWeight() - 50 ||
+          TotalWeight > calculateTotalWeight() + 50 ? (
             <TouchableHighlight
               underlayColor={"#928F8A"}
               style={[styles.PayButton, { backgroundColor: "#ccc" }]} // Change button color to gray when disabled
@@ -341,6 +379,7 @@ const styles = ScaledSheet.create({
     justifyContent: "center",
     alignItems: "center",
     alignContent: "center",
+    overflow: "hidden",
   },
 
   image: {
@@ -398,16 +437,17 @@ const styles = ScaledSheet.create({
   },
 
   totalItemText: {
-    fontSize: "20@mvs",
+    fontSize: "15@mvs",
     fontFamily: "Inter_400Regular",
     color: "#7E7E7E",
+    paddingTop: 10,
   },
 
   ErrorText: {
     fontSize: "10@mvs",
     fontFamily: "Inter_400Regular",
     color: "#FF4848",
-    paddingBottom: 10,
+    // paddingBottom: 10,
   },
 
   Cam: {

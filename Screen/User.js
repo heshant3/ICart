@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import React from "react";
 import { ScaledSheet } from "react-native-size-matters";
+import { FontAwesome5 } from "@expo/vector-icons";
 const { height, width } = Dimensions.get("window");
 
 export default function User() {
@@ -28,7 +29,9 @@ export default function User() {
       {/* User data */}
       <View style={{ flex: 1 }}>
         <View style={styles.TextBox}>
-          <View style={styles.Circle}></View>
+          <View style={styles.Circle}>
+            <FontAwesome5 name="user" size={50} color="#515151" />
+          </View>
           <Text style={styles.NameHeadText}>Fulll Name</Text>
           <Text style={styles.NameText}>Dunidu Dasun kalubowila</Text>
         </View>
@@ -70,10 +73,9 @@ const styles = ScaledSheet.create({
     borderRadius: 80,
     width: width / 4,
     height: width / 4,
-    backgroundColor: "#515151",
+    backgroundColor: "#F1F1F1",
     justifyContent: "center",
     alignItems: "center",
-
     marginBottom: 60,
   },
 
