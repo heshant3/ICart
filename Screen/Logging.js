@@ -32,9 +32,9 @@ export default function LoginPage({}) {
       contentInsetAdjustmentBehavior="automatic"
       style={styles.container}
     >
-      <StatusBar style="light" backgroundColor="#000" />
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <View style={styles.top}>
-        <Image source={require("../assets/bk.jpg")} style={styles.image} />
+        <Image source={require("../assets/bk.png")} style={styles.image} />
       </View>
       <View style={styles.bottom}>
         <Text style={styles.text}>Login Screen</Text>
@@ -67,7 +67,7 @@ export default function LoginPage({}) {
 
 const styles = ScaledSheet.create({
   container: {
-    backgroundColor: "#F5F5F5",
+    backgroundColor: "#fff",
     flex: 1,
   },
   top: {
@@ -80,8 +80,8 @@ const styles = ScaledSheet.create({
     flex: 1.6,
   },
   image: {
-    width: "120%",
-    height: "120%",
+    width: "100%",
+    height: "100%",
     resizeMode: "contain",
   },
   text: {

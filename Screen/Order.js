@@ -294,14 +294,12 @@ export default function Order() {
               </Text>
             </View>
             {/* Conditional rendering for error text */}
-            {(TotalWeight !== calculateTotalWeight() &&
-              TotalWeight < calculateTotalWeight() - 50) ||
-              (TotalWeight > calculateTotalWeight() + 50 &&
-                calculateTotalItemCount() !== 0 && (
-                  <Text style={styles.ErrorText}>
-                    The total item Weight is mismatched.
-                  </Text>
-                ))}
+            {TotalWeight < calculateTotalWeight() - 50 ||
+            TotalWeight > calculateTotalWeight() + 50 ? (
+              <Text style={styles.ErrorText}>
+                The total item weight is mismatched.
+              </Text>
+            ) : null}
 
             {/* Display total price */}
             <View
