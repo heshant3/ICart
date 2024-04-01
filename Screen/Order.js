@@ -207,11 +207,11 @@ export default function Order() {
                   </View>
                   <View style={{ flexDirection: "colum" }}>
                     <Text style={styles.BoxText}>{item.Name}</Text>
-                    <Text style={styles.BoxQuantityText}>
-                      Weight: {item.Weight} g
+                    <Text style={styles.BoxWeightText}>
+                      Weight: {item.Weight}g
                     </Text>
                     <Text style={styles.BoxQuantityText}>
-                      Price: Rs:{item.Price}
+                      Price: Rs.{item.Price}
                     </Text>
                   </View>
                 </View>
@@ -236,77 +236,97 @@ export default function Order() {
         </View>
 
         {/* Display total item count */}
-        <View style={styles.totalItem}>
-          <Text style={styles.totalItemText}>
-            Total Items: {calculateTotalItemCount()}
-          </Text>
-
-          {/* Conditional rendering for error text */}
-          {ItemCount !== calculateTotalItemCount() &&
-            calculateTotalItemCount() !== 0 && (
-              <Text style={styles.ErrorText}>
-                The total item count is mismatched.
+        <View
+          style={{
+            flex: 0.6,
+            borderColor: "#6dd051",
+            borderTopWidth: 1,
+          }}
+        >
+          <View style={styles.totalItem}>
+            <View
+              style={{ flexDirection: "row", justifyContent: "space-between" }}
+            >
+              <Text style={styles.totalItemText}>Total Items:</Text>
+              <Text style={styles.totalItemText}>
+                {calculateTotalItemCount()}
               </Text>
-            )}
-
-          {/* Display total weight */}
-          <Text style={styles.totalItemText}>
-            Total Weight: {calculateTotalWeight()} g
-          </Text>
-
-          {/* Conditional rendering for error text */}
-          {(TotalWeight !== calculateTotalWeight() &&
-            TotalWeight < calculateTotalWeight() - 50) ||
-            (TotalWeight > calculateTotalWeight() + 50 &&
+            </View>
+            {/* Conditional rendering for error text */}
+            {ItemCount !== calculateTotalItemCount() &&
               calculateTotalItemCount() !== 0 && (
                 <Text style={styles.ErrorText}>
-                  The total item Weight is mismatched.
+                  The total item count is mismatched.
                 </Text>
-              ))}
+              )}
 
-          {/* Display total price */}
-          <Text style={styles.totalItemText}>
-            Total Price: Rs {calculateTotalPrice()}
-          </Text>
-        </View>
-
-        {/* Display Pay button*/}
-        <View style={{ flex: 0.4 }}>
-          <TouchableHighlight
-            onPress={() => {
-              setModalVisible(true);
-            }}
-            underlayColor="#C2FFB0"
-            style={styles.QRbtn}
-          >
-            <MaterialCommunityIcons
-              name="qrcode-scan"
-              size={44}
-              color={"#6dd051"}
-              style={styles.Qr}
-            />
-          </TouchableHighlight>
-
-          {ItemCount !== calculateTotalItemCount() ||
-          calculateTotalItemCount() === 0 ||
-          TotalWeight < calculateTotalWeight() - 50 ||
-          TotalWeight > calculateTotalWeight() + 50 ? (
-            <TouchableHighlight
-              underlayColor={"#928F8A"}
-              style={[styles.PayButton, { backgroundColor: "#ccc" }]} // Change button color to gray when disabled
-              disabled={true} // Disable the button
+            {/* Display total weight */}
+            <View
+              style={{ flexDirection: "row", justifyContent: "space-between" }}
             >
-              <Text style={styles.PayButtonText}>Pay Now</Text>
-            </TouchableHighlight>
-          ) : (
-            <TouchableHighlight
-              underlayColor={"#928F8A"}
-              style={styles.PayButton}
-              onPress={handlePayment}
+              <Text style={styles.totalItemText}>Total Weight:</Text>
+              <Text style={styles.totalItemText}>
+                {calculateTotalWeight()} g
+              </Text>
+            </View>
+            {/* Conditional rendering for error text */}
+            {(TotalWeight !== calculateTotalWeight() &&
+              TotalWeight < calculateTotalWeight() - 50) ||
+              (TotalWeight > calculateTotalWeight() + 50 &&
+                calculateTotalItemCount() !== 0 && (
+                  <Text style={styles.ErrorText}>
+                    The total item Weight is mismatched.
+                  </Text>
+                ))}
+
+            {/* Display total price */}
+            <View
+              style={{ flexDirection: "row", justifyContent: "space-between" }}
             >
-              <Text style={styles.PayButtonText}>Pay Now</Text>
+              <Text style={styles.totalItemText}>Total Price:</Text>
+              <Text style={styles.totalItemText}>
+                Rs.{calculateTotalPrice()}
+              </Text>
+            </View>
+          </View>
+          {/* Display Pay button*/}
+          <View style={{ flex: 0.4 }}>
+            <TouchableHighlight
+              onPress={() => {
+                setModalVisible(true);
+              }}
+              underlayColor="#C2FFB0"
+              style={styles.QRbtn}
+            >
+              <MaterialCommunityIcons
+                name="qrcode-scan"
+                size={44}
+                color={"#6dd051"}
+                style={styles.Qr}
+              />
             </TouchableHighlight>
-          )}
+
+            {ItemCount !== calculateTotalItemCount() ||
+            calculateTotalItemCount() === 0 ||
+            TotalWeight < calculateTotalWeight() - 50 ||
+            TotalWeight > calculateTotalWeight() + 50 ? (
+              <TouchableHighlight
+                underlayColor={"#928F8A"}
+                style={[styles.PayButton, { backgroundColor: "#ccc" }]} // Change button color to gray when disabled
+                disabled={true} // Disable the button
+              >
+                <Text style={styles.PayButtonText}>Pay Now</Text>
+              </TouchableHighlight>
+            ) : (
+              <TouchableHighlight
+                underlayColor={"#928F8A"}
+                style={styles.PayButton}
+                onPress={handlePayment}
+              >
+                <Text style={styles.PayButtonText}>Pay Now</Text>
+              </TouchableHighlight>
+            )}
+          </View>
         </View>
       </View>
 
@@ -402,6 +422,20 @@ const styles = ScaledSheet.create({
     color: "#858585",
   },
 
+  BoxWeightText: {
+    paddingLeft: 20,
+    fontSize: "12@mvs",
+    fontFamily: "Inter_400Regular",
+    color: "#858585",
+  },
+
+  BoxQuantityText: {
+    paddingLeft: 20,
+    fontSize: "15@mvs",
+    fontFamily: "Inter_400Regular",
+    color: "#858585",
+  },
+
   CountBox: {
     height: "27@mvs0.1",
     width: "90@mvs0.3",
@@ -433,7 +467,7 @@ const styles = ScaledSheet.create({
   },
 
   totalItem: {
-    paddingLeft: 20,
+    paddingHorizontal: 20,
   },
 
   totalItemText: {

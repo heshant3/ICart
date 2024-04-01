@@ -22,12 +22,17 @@ export default function History() {
   const navigation = useNavigation();
 
   // Fetch penalty data from Firebase when the component mounts
+  // Fetch penalty data from Firebase when the component mounts
   useEffect(() => {
     const OrderHistoryRef = ref(db, "Order");
     onValue(OrderHistoryRef, (snapshot) => {
       const firebaseData = snapshot.val();
       if (firebaseData) {
         const OrderHistoryArray = Object.values(firebaseData);
+
+        // Sort the OrderHistoryArray based on the order date in descending order
+        OrderHistoryArray.sort((a, b) => new Date(b.Date) - new Date(a.Date));
+
         setOrderHistoryData(OrderHistoryArray);
       }
     });
