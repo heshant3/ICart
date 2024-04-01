@@ -20,6 +20,7 @@ import { Camera } from "expo-camera";
 import { ref, onValue, push, set } from "firebase/database";
 import { db } from "../config";
 import { useNavigation } from "@react-navigation/native";
+import LottieView from "lottie-react-native";
 
 export default function Order() {
   const [cameraRef, setCameraRef] = useState(null);
@@ -192,6 +193,29 @@ export default function Order() {
       </View>
       <View style={{ flex: 1 }}>
         <View style={{ flex: 1 }}>
+          {calculateTotalItemCount() === 0 && (
+            <View
+              style={{
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <View style={styles.LottieContainer}>
+                <LottieView
+                  source={require("../assets/Grocery.json")} // Change 'animation.json' to your Lottie animation file
+                  autoPlay
+                  loop
+                  style={{
+                    height: height - 440,
+                    width: width,
+                  }}
+                />
+                <Text style={styles.ScanText}>
+                  Scan product using barcode Scanner
+                </Text>
+              </View>
+            </View>
+          )}
           <ScrollView
             contentContainerStyle={styles.scroll}
             showsVerticalScrollIndicator={false}
@@ -238,7 +262,7 @@ export default function Order() {
         {/* Display total item count */}
         <View
           style={{
-            flex: 0.6,
+            flex: 0.3,
             borderColor: "#6dd051",
             borderTopWidth: 1,
           }}
@@ -289,44 +313,44 @@ export default function Order() {
               </Text>
             </View>
           </View>
-          {/* Display Pay button*/}
-          <View style={{ flex: 0.4 }}>
-            <TouchableHighlight
-              onPress={() => {
-                setModalVisible(true);
-              }}
-              underlayColor="#C2FFB0"
-              style={styles.QRbtn}
-            >
-              <MaterialCommunityIcons
-                name="qrcode-scan"
-                size={44}
-                color={"#6dd051"}
-                style={styles.Qr}
-              />
-            </TouchableHighlight>
+        </View>
+        {/* Display Pay button*/}
+        <View style={{ flex: 0.3 }}>
+          <TouchableHighlight
+            onPress={() => {
+              setModalVisible(true);
+            }}
+            underlayColor="#C2FFB0"
+            style={styles.QRbtn}
+          >
+            <MaterialCommunityIcons
+              name="barcode-scan"
+              size={44}
+              color={"#6dd051"}
+              style={styles.Qr}
+            />
+          </TouchableHighlight>
 
-            {ItemCount !== calculateTotalItemCount() ||
-            calculateTotalItemCount() === 0 ||
-            TotalWeight < calculateTotalWeight() - 50 ||
-            TotalWeight > calculateTotalWeight() + 50 ? (
-              <TouchableHighlight
-                underlayColor={"#928F8A"}
-                style={[styles.PayButton, { backgroundColor: "#ccc" }]} // Change button color to gray when disabled
-                disabled={true} // Disable the button
-              >
-                <Text style={styles.PayButtonText}>Pay Now</Text>
-              </TouchableHighlight>
-            ) : (
-              <TouchableHighlight
-                underlayColor={"#928F8A"}
-                style={styles.PayButton}
-                onPress={handlePayment}
-              >
-                <Text style={styles.PayButtonText}>Pay Now</Text>
-              </TouchableHighlight>
-            )}
-          </View>
+          {ItemCount !== calculateTotalItemCount() ||
+          calculateTotalItemCount() === 0 ||
+          TotalWeight < calculateTotalWeight() - 50 ||
+          TotalWeight > calculateTotalWeight() + 50 ? (
+            <TouchableHighlight
+              underlayColor={"#928F8A"}
+              style={[styles.PayButton, { backgroundColor: "#ccc" }]} // Change button color to gray when disabled
+              disabled={true} // Disable the button
+            >
+              <Text style={styles.PayButtonText}>Pay Now</Text>
+            </TouchableHighlight>
+          ) : (
+            <TouchableHighlight
+              underlayColor={"#928F8A"}
+              style={styles.PayButton}
+              onPress={handlePayment}
+            >
+              <Text style={styles.PayButtonText}>Pay Now</Text>
+            </TouchableHighlight>
+          )}
         </View>
       </View>
 
@@ -390,6 +414,20 @@ const styles = ScaledSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
+  },
+
+  LottieContainer: {
+    width: width,
+    height: height - 370,
+    borderRadius: 20,
+    overflow: "hidden",
+    alignItems: "center",
+  },
+
+  ScanText: {
+    fontSize: "17@mvs",
+    fontFamily: "Inter_400Regular",
+    color: "#515151",
   },
 
   ImageBox: {
@@ -500,7 +538,6 @@ const styles = ScaledSheet.create({
     borderColor: "transparent",
     borderRadius: 10,
     fontSize: 42,
-    marginTop: 20,
   },
 
   centeredView: {
@@ -544,7 +581,7 @@ const styles = ScaledSheet.create({
   },
 
   PayButton: {
-    marginTop: 20,
+    marginTop: 15,
     backgroundColor: "#6dd051",
     alignSelf: "center",
     justifyContent: "center",
