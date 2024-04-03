@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { ScaledSheet } from "react-native-size-matters";
 import { ref, onValue } from "firebase/database";
-import { db } from "../config";
+import { db } from "../firebase";
 
 const { height, width } = Dimensions.get("window");
 

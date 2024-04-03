@@ -18,7 +18,7 @@ import { MaterialCommunityIcons, Entypo } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Camera } from "expo-camera";
 import { ref, onValue, push, set } from "firebase/database";
-import { db } from "../config";
+import { db } from "../firebase";
 import { useNavigation } from "@react-navigation/native";
 import LottieView from "lottie-react-native";
 

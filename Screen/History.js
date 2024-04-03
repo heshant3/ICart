@@ -12,7 +12,7 @@ import {
 import { FontAwesome6 } from "@expo/vector-icons";
 import { ScaledSheet } from "react-native-size-matters";
 import { ref, onValue } from "firebase/database";
-import { db } from "../config";
+import { db } from "../firebase";
 import { useNavigation } from "@react-navigation/native";
 
 const { height, width } = Dimensions.get("window");
